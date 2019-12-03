@@ -17,6 +17,10 @@ extern int filter_mode;
 extern bool opaque_check;
 extern bool semitrans_check;
 
+extern bool currently_interlaced; // Update this when rsx_intf_set_display_mode() is called
+extern bool interlace_setting_changed; // Set this every time currently_interlaced changes and
+                                       // reset it when frontend is successfully reconfigured
+
 #ifdef __cplusplus
 }
 #endif

@@ -3642,7 +3642,10 @@ void retro_run(void)
    /* We only start counting after the first frame we encounter. This
       way the value we display remains consistent if the real
       framerate is not a multiple of INTERNAL_FPS_SAMPLE_PERIOD
-   */
+
+      This section could be moved to be more accurate since it's delayed
+      by one frame and doesn't catch timing changes until next frame, but
+      that's probably unneeded accuracy */
    if (display_internal_framerate && internal_frame_count)
    {
       frame_count++;
@@ -3650,7 +3653,9 @@ void retro_run(void)
       if (frame_count % INTERNAL_FPS_SAMPLE_PERIOD == 0)
       {
          char msg_buffer[64];
-         float fps = is_pal ? FPS_PAL : FPS_NTSC;
+         float fps = content_is_pal ?
+                        (currently_interlaced ? FPS_PAL_INTERLACED : FPS_PAL_NONINTERLACED) :
+                        (currently_interlaced ? FPS_NTSC_INTERLACED : FPS_NTSC_NONINTERLACED);
          float internal_fps = (internal_frame_count * fps) / INTERNAL_FPS_SAMPLE_PERIOD;
 
          snprintf(msg_buffer, sizeof(msg_buffer), _("Internal FPS: %.2f"), internal_fps);
@@ -3779,6 +3784,20 @@ void retro_run(void)
    }
 
    /* end of Emulate */
+
+   // Check if timing needs to be changed due to display mode change on this frame
+   if (interlace_setting_changed)
+   {
+      struct retro_system_av_info new_av_info;
+
+      retro_get_system_av_info(&new_av_info);
+
+      if (environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &new_av_info))
+      {
+         interlace_setting_changed = false;
+      }
+      // If unable to change, defer to next frame and leave interlace_setting_changed flagged
+   }
 
    const void *fb        = NULL;
    unsigned width        = rects[0];

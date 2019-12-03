@@ -10,3 +10,5 @@ int lineRenderMode;
 int filter_mode;
 bool opaque_check;
 bool semitrans_check;
+bool currently_interlaced = false;
+bool interlace_setting_changed = false;

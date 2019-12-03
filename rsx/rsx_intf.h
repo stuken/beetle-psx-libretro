@@ -7,8 +7,12 @@
 #include "rsx.h"
 
 #define SOUND_FREQUENCY 44100
-#define FPS_NTSC 59.941
-#define FPS_PAL 49.76
+
+/* NTSC content on NTSC clock, PAL content on PAL clock */
+#define FPS_NTSC_INTERLACED 59.940
+#define FPS_NTSC_NONINTERLACED 59.826
+#define FPS_PAL_INTERLACED 50.000
+#define FPS_PAL_NONINTERLACED 49.761
 
 enum rsx_renderer_type
 {

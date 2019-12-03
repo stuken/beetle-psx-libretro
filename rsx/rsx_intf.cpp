@@ -2271,10 +2271,10 @@ static struct retro_system_av_info get_av_info(VideoClock std)
    switch (std)
    {
       case VideoClock_Ntsc:
-         info.timing.fps = FPS_NTSC;
+         info.timing.fps = currently_interlaced ? FPS_NTSC_INTERLACED : FPS_NTSC_NONINTERLACED;
          break;
       case VideoClock_Pal:
-         info.timing.fps = FPS_PAL;
+         info.timing.fps = currently_interlaced ? FPS_PAL_INTERLACED : FPS_PAL_NONINTERLACED;
          break;
    }
 
@@ -3658,7 +3658,9 @@ void rsx_intf_get_system_av_info(struct retro_system_av_info *info)
    {
       case RSX_SOFTWARE:
          memset(info, 0, sizeof(*info));
-         info->timing.fps            = content_is_pal ? FPS_PAL : FPS_NTSC;
+         info->timing.fps            = content_is_pal ?
+                                          (currently_interlaced ? FPS_PAL_INTERLACED : FPS_PAL_NONINTERLACED) :
+                                          (currently_interlaced ? FPS_NTSC_INTERLACED : FPS_NTSC_NONINTERLACED);
          info->timing.sample_rate    = SOUND_FREQUENCY;
          info->geometry.base_width   = MEDNAFEN_CORE_GEOMETRY_BASE_W;
          info->geometry.base_height  = MEDNAFEN_CORE_GEOMETRY_BASE_H;
@@ -3692,10 +3694,9 @@ void rsx_intf_get_system_av_info(struct retro_system_av_info *info)
          info->timing.sample_rate   = SOUND_FREQUENCY;
 
          info->geometry.aspect_ratio = !widescreen_hack ? MEDNAFEN_CORE_GEOMETRY_ASPECT_RATIO : 16.0 / 9.0;
-         if (content_is_pal)
-            info->timing.fps = FPS_PAL;
-         else
-            info->timing.fps = FPS_NTSC;
+         info->timing.fps = content_is_pal ?
+                               (currently_interlaced ? FPS_PAL_INTERLACED : FPS_PAL_NONINTERLACED) :
+                               (currently_interlaced ? FPS_NTSC_INTERLACED : FPS_NTSC_NONINTERLACED);
 #endif
          break;
    }
@@ -4117,6 +4118,13 @@ void rsx_intf_set_display_mode(uint16_t x, uint16_t y,
 #ifdef RSX_DUMP
    rsx_dump_set_display_mode(x, y, w, h, depth_24bpp, is_pal, is_480i, width_mode);
 #endif
+
+   // Set variables used to track if frontend timing needs to be reconfigured
+   if (currently_interlaced != is_480i)
+   {
+      currently_interlaced = is_480i;
+      interlace_setting_changed = true;
+   }
 
    switch (rsx_type)
    {
