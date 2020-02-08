@@ -166,6 +166,10 @@ ifeq ($(HAVE_LIGHTREC), 1)
 
    INCFLAGS += -I$(DEPS_DIR)/lightning/include \
                -I$(DEPS_DIR)/lightrec
+   ifeq ($(platform), libnx)
+      SOURCES_C += $(DEPS_DIR)/libnx/heap/heap.c
+   endif
+   
 endif
 
 ifneq ($(HAVE_GRIFFIN), 1)
