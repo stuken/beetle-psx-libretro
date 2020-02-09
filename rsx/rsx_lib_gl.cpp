@@ -17,6 +17,10 @@
 #include <cstdio>
 #include <stdint.h>
 
+#ifdef HAVE_LIBNX
+#include <switch.h>
+#endif
+
 #include <map>
 #include <string>
 #include <algorithm>
@@ -222,6 +226,10 @@ struct Texture
    uint32_t width;
    uint32_t height;
 };
+
+#ifdef HAVE_LIBNX
+#define Framebuffer _Framebuffer
+#endif
 
 struct Framebuffer
 {
