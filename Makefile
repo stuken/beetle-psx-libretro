@@ -286,6 +286,28 @@ else ifeq ($(platform), wiiu)
    STATIC_LINKING = 1
    NEED_THREADING = 0
 
+# Nintendo Switch (libnx)
+else ifeq ($(platform), libnx)
+   include $(DEVKITPRO)/libnx/switch_rules
+   EXT=a
+   fpic := -fPIC
+   TARGET = $(TARGET_NAME)_libretro_$(platform).$(EXT)
+   DEFINES = -DSWITCH=1 -DRARCH_INTERNAL -DHAVE_THREADS=1
+   CFLAGS += $(DEFINES) -g \
+      -O3 -ftree-vectorize -funsafe-math-optimizations -ffast-math -DHAVE_LIBNX \
+      -fPIE -I$(PORTLIBS)/include/ -I$(LIBNX)/include/ -include $(LIBNX)/include/switch.h -ffunction-sections -fdata-sections -ftls-model=local-exec
+   CFLAGS += $(INCDIRS)
+   CFLAGS += $(INCLUDE) -D__SWITCH__
+   ifeq ($(HAVE_OPENGL),1)
+      CFLAGS += -DHAVE_OPENGL
+   endif
+   CXXFLAGS = $(ASFLAGS) $(CFLAGS) -fno-rtti -std=gnu++11
+   HAVE_OPENGL = 1
+   NEED_THREADING = 1
+   STATIC_LINKING = 1
+   STATIC_LINKING_LINK = 1
+   HAVE_LIGHTREC = 1
+
 # GCW0
 else ifeq ($(platform), gcw0)
    TARGET  := $(TARGET_NAME)_libretro.so
