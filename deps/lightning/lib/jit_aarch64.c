@@ -1527,8 +1527,11 @@ jit_flush(void *fptr, void *tptr)
 {
 #if defined(__GNUC__)
     jit_word_t		f, t, s;
-
+#ifndef HAVE_LIBNX
     s = sysconf(_SC_PAGE_SIZE);
+#else
+	s = 0x1000;
+#endif //HAVE_LIBNX
     f = (jit_word_t)fptr & -s;
     t = (((jit_word_t)tptr) + s - 1) & -s;
     __clear_cache((void *)f, (void *)t);

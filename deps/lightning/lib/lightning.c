@@ -19,9 +19,17 @@
 
 #include <lightning.h>
 #include <lightning/jit_private.h>
+#ifndef HAVE_LIBNX
 #include <sys/mman.h>
+#endif
 #if defined(__sgi)
 #  include <fcntl.h>
+#endif
+
+#ifdef HAVE_LIBNX
+#include "../../libnx/heap/heap.h"
+extern u32* rwAddress;
+extern u32* rxAddress;
 #endif
 
 #ifndef MAP_ANON
@@ -956,10 +964,22 @@ _jit_destroy_state(jit_state_t *_jit)
 #if DEVEL_DISASSEMBLER
     jit_really_clear_state();
 #endif
-    if (!_jit->user_code)
-	munmap(_jit->code.ptr, _jit->code.length);
-    if (!_jit->user_data)
-	munmap(_jit->data.ptr, _jit->data.length);
+    if (!_jit->user_code) {
+#ifndef HAVE_LIBNX
+		munmap(_jit->code.ptr, _jit->code.length);
+#else
+		u32* rwPage = (uintptr_t)_jit->code.ptr - (uintptr_t)rxAddress + (uintptr_t)rwAddress;
+		hfree(rwPage);
+#endif
+	}
+	
+    if (!_jit->user_data) {
+#ifndef HAVE_LIBNX
+		munmap(_jit->data.ptr, _jit->data.length);
+	}
+#else
+		free(_jit->data.ptr);
+#endif
     jit_free((jit_pointer_t *)&_jit);
 }
 
@@ -1900,10 +1920,14 @@ _jit_dataset(jit_state_t *_jit)
 #if defined(__sgi)
 	mmap_fd = open("/dev/zero", O_RDWR);
 #endif
+#ifndef HAVE_LIBNX
 	_jit->data.ptr = mmap(NULL, _jit->data.length,
 			      PROT_READ | PROT_WRITE,
 			      MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
 	assert(_jit->data.ptr != MAP_FAILED);
+#else
+	_jit->data.ptr = malloc(_jit->data.length);
+#endif
 #if defined(__sgi)
 	close(mmap_fd);
 #endif
@@ -2010,6 +2034,10 @@ _jit_emit(jit_state_t *_jit)
     jit_node_t		*node;
     size_t		 length;
     int			 result;
+#ifdef HAVE_LIBNX
+	u32* rwPage;
+	u32* rxPage;
+#endif
 #if defined(__sgi)
     int			 mmap_fd;
 #endif
@@ -2026,10 +2054,16 @@ _jit_emit(jit_state_t *_jit)
 #if defined(__sgi)
 	mmap_fd = open("/dev/zero", O_RDWR);
 #endif
+#ifndef HAVE_LIBNX
 	_jit->code.ptr = mmap(NULL, _jit->code.length,
 			      PROT_EXEC | PROT_READ | PROT_WRITE,
 			      MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
 	assert(_jit->code.ptr != MAP_FAILED);
+#else
+	rwPage = hmalloc(_jit->code.length);
+	rxPage = rwPage - rwAddress + rxAddress;
+	_jit->code.ptr = rxPage;
+#endif
     }
     _jitc->code.end = _jit->code.ptr + _jit->code.length -
 	jit_get_max_instr();
@@ -2053,11 +2087,11 @@ _jit_emit(jit_state_t *_jit)
 	    /* Should only happen on very special cases */
 	    length = _jit->code.length + 4096;
 #endif
-
+#ifndef HAVE_LIBNX
 #if !HAVE_MREMAP
 	    munmap(_jit->code.ptr, _jit->code.length);
 #endif
-
+#endif //HAVE_LIBNX
 #if HAVE_MREMAP
 #  if __NetBSD__
 	    _jit->code.ptr = mremap(_jit->code.ptr, _jit->code.length,
@@ -2066,13 +2100,20 @@ _jit_emit(jit_state_t *_jit)
 	    _jit->code.ptr = mremap(_jit->code.ptr, _jit->code.length,
 				    length, MREMAP_MAYMOVE, NULL);
 #  endif
+#elif HAVE_LIBNX
+		u32* oldRxPage = _jit->code.ptr;
+		u32* oldRwPage = oldRxPage - rxAddress + rwAddress;
+		u32* newRwPage = hmalloc(length);
+		u32* newRxPage = newRwPage - rwAddress + rxAddress;
+		memcpy(newRwPage, oldRwPage, _jit->code.length);
+		hfree(oldRwPage);
 #else
 	    _jit->code.ptr = mmap(NULL, length,
 				  PROT_EXEC | PROT_READ | PROT_WRITE,
 				  MAP_PRIVATE | MAP_ANON, mmap_fd, 0);
-#endif
+		assert(_jit->code.ptr != MAP_FAILED);
+#endif //HAVE_MREMAP
 
-	    assert(_jit->code.ptr != MAP_FAILED);
 	    _jit->code.length = length;
 	    _jitc->code.end = _jit->code.ptr + _jit->code.length -
 		jit_get_max_instr();
@@ -2094,16 +2135,20 @@ _jit_emit(jit_state_t *_jit)
     if (_jit->user_data)
 	jit_free((jit_pointer_t *)&_jitc->data.ptr);
     else {
+#ifndef HAVE_LIBNX		
 	result = mprotect(_jit->data.ptr, _jit->data.length, PROT_READ);
 	assert(result == 0);
+#endif	
     }
     if (!_jit->user_code) {
+#ifndef HAVE_LIBNX		
 	result = mprotect(_jit->code.ptr, _jit->code.length,
 			  PROT_READ | PROT_EXEC);
 	assert(result == 0);
+#endif
     }
 
-    return (_jit->code.ptr);
+    return (void*)_jit->code.ptr;
 fail:
     return (NULL);
 }

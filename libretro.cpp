@@ -29,9 +29,11 @@
 #include <vector>
 #define ISHEXDEC ((codeLine[cursor]>='0') && (codeLine[cursor]<='9')) || ((codeLine[cursor]>='a') && (codeLine[cursor]<='f')) || ((codeLine[cursor]>='A') && (codeLine[cursor]<='F'))
 
+#ifndef HAVE_LIBNX
 #ifdef HAVE_LIGHTREC
 #include <sys/mman.h>
 #endif
+#endif //HAVE_LIBNX
 
 #ifdef HAVE_ASHMEM
 #include <sys/ioctl.h>
@@ -45,6 +47,19 @@
 
 #ifdef HAVE_WIN_SHM
 #include <windows.h>
+#endif
+
+#ifdef HAVE_LIBNX
+#include <switch.h>
+#include "deps/libnx/heap/heap.h"
+Jit jitController;
+u32* rwAddress;
+u32* rxAddress;
+
+void freeJitBuffer() {
+   jitClose(&jitController);
+}
+
 #endif
 
 //Fast Save States exclude string labels from variables in the savestate, and are at least 20% faster.
@@ -1618,6 +1633,7 @@ static const uintptr_t supported_io_bases[] = {
 
 int lightrec_init_mmap()
 {
+#ifndef HAVE_LIBNX
 #ifdef HAVE_SHM
 	unsigned int i, j;
 	uintptr_t base;
@@ -1850,10 +1866,12 @@ err_unmap:
 	fprintf(stderr, "Unable to mmap on any base address, dynarec will be slower\n");
 	return -EINVAL;
 #endif
+#endif //HAVE_LIBNX
 }
 
 void lightrec_free_mmap()
 {
+#ifndef HAVE_LIBNX
 	unsigned int i = 0;
 
 	munmap(psx_scratch, 0x400);
@@ -1867,6 +1885,7 @@ void lightrec_free_mmap()
 #ifdef HAVE_ASHMEM
 	close(memfd);
 #endif
+#endif //HAVE_LIBNX
 }
 #endif
 
@@ -1983,6 +2002,7 @@ static void InitCommon(std::vector<CDIF *> *_CDInterfaces, const bool EmulateMem
    else
       SetDiscWrapper(CD_TrayOpen);
 
+#ifndef HAVE_LIBNX
 #ifdef HAVE_LIGHTREC
    if(lightrec_init_mmap() == 0)
    {
@@ -1992,6 +2012,7 @@ static void InitCommon(std::vector<CDIF *> *_CDInterfaces, const bool EmulateMem
    }
    else
 #endif
+#endif //HAVE_LIBNX
    {
       MainRAM = new MultiAccessSizeMem<2048 * 1024, uint32, false>();
       ScratchRAM = new MultiAccessSizeMem<1024, uint32, false>();
@@ -2342,6 +2363,9 @@ static void Cleanup(void)
    lightrec_free_mmap();
 #if defined(HAVE_SHM)
    close(memfd);
+#endif
+#ifdef HAVE_LIBNX
+   freeJitBuffer();
 #endif
 #else
    if(MainRAM)
@@ -3148,6 +3172,16 @@ void retro_init(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;
+
+   #ifdef HAVE_LIGHTREC 
+      #ifdef HAVE_LIBNX
+         u32 size = (1024 * 1024 *64);
+         jitCreate(&jitController, size);
+         rwAddress = (u32*)jitGetRwAddr(&jitController);
+         rxAddress = (u32*)jitGetRxAddr(&jitController);
+         heap_init(rwAddress);
+      #endif
+   #endif
 
    check_system_specs();
 }
