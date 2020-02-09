@@ -2108,6 +2108,7 @@ _jit_emit(jit_state_t *_jit)
 		u32* newRxPage = newRwPage - rwAddress + rxAddress;
 		memcpy(newRwPage, oldRwPage, _jit->code.length);
 		hfree(oldRwPage);
+		_jit->code.ptr = newRxPage;
 #else
 	    _jit->code.ptr = mmap(NULL, length,
 				  PROT_EXEC | PROT_READ | PROT_WRITE,
