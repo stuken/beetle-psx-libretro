@@ -25,7 +25,7 @@
 #if defined(__sgi)
 #  include <fcntl.h>
 #endif
-
+#define HAVE_LIBNX
 #ifdef HAVE_LIBNX
 #include "../../libnx/heap/heap.h"
 extern u32* rwAddress;
@@ -976,10 +976,11 @@ _jit_destroy_state(jit_state_t *_jit)
     if (!_jit->user_data) {
 #ifndef HAVE_LIBNX
 		munmap(_jit->data.ptr, _jit->data.length);
-	}
 #else
 		free(_jit->data.ptr);
 #endif
+	}
+
     jit_free((jit_pointer_t *)&_jit);
 }
 
@@ -2100,7 +2101,7 @@ _jit_emit(jit_state_t *_jit)
 	    _jit->code.ptr = mremap(_jit->code.ptr, _jit->code.length,
 				    length, MREMAP_MAYMOVE, NULL);
 #  endif
-#elif HAVE_LIBNX
+#elif defined HAVE_LIBNX
 		u32* oldRxPage = _jit->code.ptr;
 		u32* oldRwPage = oldRxPage - rxAddress + rwAddress;
 		u32* newRwPage = hmalloc(length);
