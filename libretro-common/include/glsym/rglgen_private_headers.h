@@ -20,13 +20,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef RGLGEN_HEADERS_H__
-#define RGLGEN_HEADERS_H__
-
-#ifdef HAVE_EGL
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#endif
+#ifndef RGLGEN_PRIVATE_HEADERS_H__
+#define RGLGEN_PRIVATE_HEADERS_H__
 
 #if defined(IOS)
 
@@ -76,26 +71,6 @@
 #include "switch/nx_gl.h"
 #include <GL/glext.h>
 #endif /* SWITCH */
-#endif
-
-#ifndef GL_MAP_WRITE_BIT
-#define GL_MAP_WRITE_BIT 0x0002
-#endif
-
-#ifndef GL_MAP_INVALIDATE_BUFFER_BIT
-#define GL_MAP_INVALIDATE_BUFFER_BIT 0x0008
-#endif
-
-#ifndef GL_RED_INTEGER
-#define GL_RED_INTEGER 0x8D94
-#endif
-
-#ifndef GL_BGRA_EXT
-#define GL_BGRA_EXT GL_BGRA
-#endif
-
-#ifndef GL_LUMINANCE_ALPHA
-#define GL_LUMINANCE_ALPHA 0x190A
 #endif
 
 #endif
