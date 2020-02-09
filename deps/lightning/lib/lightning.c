@@ -25,7 +25,7 @@
 #if defined(__sgi)
 #  include <fcntl.h>
 #endif
-#define HAVE_LIBNX
+
 #ifdef HAVE_LIBNX
 #include "../../libnx/heap/heap.h"
 extern u32* rwAddress;
