@@ -132,7 +132,9 @@ void heap_init(u32* base)
 
 void *hmalloc(u32 size)
 {
-	return (void *)_heap_alloc(&_heap, size);
+	void *res = (void *)_heap_alloc(&_heap, size);
+    memset(res, 0, size);
+    return res;
 }
 
 void *hcalloc(u32 num, u32 size)
