@@ -3,7 +3,7 @@
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
+ * version 2 (or later), as published by the Free Software Foundation.
  *
  * This program is distributed in the hope it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -23,12 +23,16 @@ extern "C" {
 typedef unsigned int u32;
 
 typedef struct _hnode {
-	int used;
-	u32 size;
-	struct _hnode *prev;
-	struct _hnode *next;
-	u32 align[4]; // Align to arch cache line size.
-} hnode_t;
+    u32 used;
+    u32 size;
+    struct _hnode *prev; // 64bit or 32bit ptr
+    struct _hnode *next; // 64bit or 32bit ptr
+#ifdef __64BIT__
+    u32 align[10]; // Align to arch cache line for 64bit arch (64 Bytes).
+#else
+    u32 align[4]; // Align to arch cache line for 32bit arch (32 Bytes).
+#endif
+} __attribute__ ((packed)) hnode_t;
 
 typedef struct _heap {
 	u32* start;
