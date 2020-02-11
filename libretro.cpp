@@ -3175,7 +3175,7 @@ void retro_init(void)
 
    #ifdef HAVE_LIGHTREC 
       #ifdef HAVE_LIBNX
-         u32 size = (1024 * 1024 *64);
+         u32 size = (1024 * 1024 * 512);
          jitCreate(&jitController, size);
          rwAddress = (u32*)jitGetRwAddr(&jitController);
          rxAddress = (u32*)jitGetRxAddr(&jitController);
