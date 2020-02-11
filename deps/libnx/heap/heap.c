@@ -25,7 +25,7 @@ static void _heap_create(heap_t *heap, u32* start)
 }
 
 // Node info is before node address.
-static u32 _heap_alloc(heap_t *heap, u32 size)
+static u64 _heap_alloc(heap_t *heap, u32 size)
 {
     hnode_t *node, *newNode;
 
@@ -41,7 +41,7 @@ static u32 _heap_alloc(heap_t *heap, u32 size)
         node->next = NULL;
         heap->first = node;
 
-        return (u32)node + sizeof(hnode_t);
+        return (u64)node + sizeof(hnode_t);
     }
 
     node = heap->first;
@@ -52,7 +52,7 @@ static u32 _heap_alloc(heap_t *heap, u32 size)
         {
             // Size and offset of the new unused node.
             u32 new_size = node->size - size;
-            newNode = (hnode_t *)((u32)node + sizeof(hnode_t) + size);
+            newNode = (hnode_t *)((u64)node + sizeof(hnode_t) + size);
 
             // If there's aligned unused space from the old node,
             // create a new one and set the leftover size.
@@ -74,7 +74,7 @@ static u32 _heap_alloc(heap_t *heap, u32 size)
             node->size = size;
             node->used = 1;
 
-            return (u32)node + sizeof(hnode_t);
+            return (u64)node + sizeof(hnode_t);
         }
 
         // No unused node found, try the next one.
@@ -85,14 +85,14 @@ static u32 _heap_alloc(heap_t *heap, u32 size)
     }
 
     // No unused node found, create a new one.
-    newNode = (hnode_t *)((u32)node + sizeof(hnode_t) + node->size);
+    newNode = (hnode_t *)((u64)node + sizeof(hnode_t) + node->size);
     newNode->used = 1;
     newNode->size = size;
     newNode->prev = node;
     newNode->next = NULL;
     node->next = newNode;
 
-    return (u32)newNode + sizeof(hnode_t);
+    return (u64)newNode + sizeof(hnode_t);
 }
 
 static void _heap_free(heap_t *heap, u32 addr)
@@ -146,8 +146,8 @@ void *hcalloc(u32 num, u32 size)
 
 void hfree(void *buf)
 {
-	if ((u32)buf >= _heap.start)
-		_heap_free(&_heap, (u32)buf);
+	if ((u64)buf >= _heap.start)
+		_heap_free(&_heap, (u64)buf);
 }
 
 void heap_monitor(heap_monitor_t *mon, bool print_node_stats)
@@ -165,7 +165,7 @@ void heap_monitor(heap_monitor_t *mon, bool print_node_stats)
 
 		if (print_node_stats)
 			printf("%3d - %d, addr: 0x%08X, size: 0x%X\n",
-				count, node->used, (u32)node + sizeof(hnode_t), node->size);
+				count, node->used, (u64)node + sizeof(hnode_t), node->size);
 
 		count++;
 
