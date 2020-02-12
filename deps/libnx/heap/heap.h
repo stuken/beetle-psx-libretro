@@ -35,7 +35,7 @@ typedef struct _hnode {
 } __attribute__ ((packed)) hnode_t;
 
 typedef struct _heap {
-	u32* start;
+	u64* start;
 	hnode_t *first;
 } heap_t;
 
@@ -45,7 +45,7 @@ typedef struct {
 } heap_monitor_t;
 
 
-void heap_init(u32* base);
+void heap_init(void *base);
 void *hmalloc(u32 size);
 void *hcalloc(u32 num, u32 size);
 void hfree(void *page);

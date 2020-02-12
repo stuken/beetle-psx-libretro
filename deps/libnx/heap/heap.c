@@ -18,7 +18,7 @@
 #include <string.h>
 #include "heap.h"
 
-static void _heap_create(heap_t *heap, u32* start)
+static void _heap_create(heap_t *heap, u64* start)
 {
 	heap->start = start;
 	heap->first = NULL;
@@ -61,7 +61,6 @@ static u64 _heap_alloc(heap_t *heap, u32 size)
                 newNode->size = new_size - sizeof(hnode_t);
                 newNode->used = 0;
                 newNode->next = node->next;
-                hnode_t* next_node = node->next;
                 // Check that we are not on first node.
                 if (newNode->next)
                     newNode->next->prev = newNode;
@@ -95,7 +94,7 @@ static u64 _heap_alloc(heap_t *heap, u32 size)
     return (u64)newNode + sizeof(hnode_t);
 }
 
-static void _heap_free(heap_t *heap, u32 addr)
+static void _heap_free(heap_t *heap, void* addr)
 {
 	hnode_t *node = (hnode_t *)(addr - sizeof(hnode_t));
 	node->used = 0;
@@ -125,7 +124,7 @@ static u32 _page_size(void* page) {
 }
 heap_t _heap;
 
-void heap_init(u32* base)
+void heap_init(void* base)
 {
 	_heap_create(&_heap, base);
 }
@@ -146,8 +145,8 @@ void *hcalloc(u32 num, u32 size)
 
 void hfree(void *buf)
 {
-	if ((u64)buf >= _heap.start)
-		_heap_free(&_heap, (u64)buf);
+	if ((u64*)buf >= _heap.start)
+		_heap_free(&_heap, buf);
 }
 
 void heap_monitor(heap_monitor_t *mon, bool print_node_stats)

@@ -53,8 +53,8 @@
 #include <switch.h>
 #include "deps/libnx/heap/heap.h"
 Jit jitController;
-u32* rwAddress;
-u32* rxAddress;
+uintptr_t rwAddress;
+uintptr_t rxAddress;
 
 void freeJitBuffer() {
    jitClose(&jitController);
@@ -3177,9 +3177,9 @@ void retro_init(void)
       #ifdef HAVE_LIBNX
          u32 size = (1024 * 1024 * 512);
          jitCreate(&jitController, size);
-         rwAddress = (u32*)jitGetRwAddr(&jitController);
-         rxAddress = (u32*)jitGetRxAddr(&jitController);
-         heap_init(rwAddress);
+         rwAddress = (uintptr_t)jitGetRwAddr(&jitController);
+         rxAddress = (uintptr_t)jitGetRxAddr(&jitController);
+         heap_init((void*)rwAddress);
       #endif
    #endif
 

@@ -28,8 +28,8 @@
 
 #ifdef HAVE_LIBNX
 #include "../../libnx/heap/heap.h"
-extern u32* rwAddress;
-extern u32* rxAddress;
+extern uintptr_t rwAddress;
+extern uintptr_t rxAddress;
 #endif
 
 #ifndef MAP_ANON
@@ -968,7 +968,7 @@ _jit_destroy_state(jit_state_t *_jit)
 #ifndef HAVE_LIBNX
 		munmap(_jit->code.ptr, _jit->code.length);
 #else
-		u32* rwPage = (uintptr_t)_jit->code.ptr - (uintptr_t)rxAddress + (uintptr_t)rwAddress;
+		uintptr_t rwPage = (uintptr_t)_jit->code.ptr - (uintptr_t)rxAddress + (uintptr_t)rwAddress;
 		hfree(rwPage);
 #endif
 	}
@@ -2036,8 +2036,8 @@ _jit_emit(jit_state_t *_jit)
     size_t		 length;
     int			 result;
 #ifdef HAVE_LIBNX
-	u32* rwPage;
-	u32* rxPage;
+	uintptr_t rwPage;
+	uintptr_t rxPage;
 #endif
 #if defined(__sgi)
     int			 mmap_fd;
@@ -2102,10 +2102,10 @@ _jit_emit(jit_state_t *_jit)
 				    length, MREMAP_MAYMOVE, NULL);
 #  endif
 #elif defined HAVE_LIBNX
-		u32* oldRxPage = _jit->code.ptr;
-		u32* oldRwPage = oldRxPage - rxAddress + rwAddress;
-		u32* newRwPage = hmalloc(length);
-		u32* newRxPage = newRwPage - rwAddress + rxAddress;
+		uintptr_t oldRxPage = _jit->code.ptr;
+		uintptr_t oldRwPage = oldRxPage - rxAddress + rwAddress;
+		uintptr_t newRwPage = hmalloc(length);
+		uintptr_t newRxPage = newRwPage - rwAddress + rxAddress;
 
 		hfree(oldRwPage);
 		_jit->code.ptr = newRxPage;
