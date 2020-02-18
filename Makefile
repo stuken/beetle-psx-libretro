@@ -302,7 +302,6 @@ else ifeq ($(platform), libnx)
       CFLAGS += -DHAVE_OPENGL
    endif
    CXXFLAGS = $(ASFLAGS) $(CFLAGS) -fno-rtti -std=gnu++11
-   HAVE_OPENGL = 1
    NEED_THREADING = 1
    STATIC_LINKING = 1
    STATIC_LINKING_LINK = 1
