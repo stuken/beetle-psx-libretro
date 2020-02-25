@@ -3378,7 +3378,7 @@ static void check_variables(bool startup)
       bool hw_renderer = false;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
       {
-         if (strcmp(var.value, "hardware") == 0)
+         if (!strcmp(var.value, "hardware") || !strcmp(var.value, "hardware_gl") || !strcmp(var.value, "hardware_vk"))
          {
             hw_renderer = true;
          }
@@ -4056,7 +4056,7 @@ bool retro_load_game(const struct retro_game_info *info)
    deint.ClearState();
 #endif
 
-	input_init();
+   input_init();
 
    boot = false;
 
@@ -4161,9 +4161,6 @@ bool retro_load_game(const struct retro_game_info *info)
          option_display.key = BEETLE_OPT(image_crop);
          environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
 
-         option_display.key = BEETLE_OPT(frame_duping);
-         environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-
          break;
       }
    }
@@ -4258,7 +4255,6 @@ void retro_run(void)
          {
             has_new_geometry = false;
          }
-
       }
 
       switch (psx_gpu_dither_mode)
@@ -4272,6 +4268,9 @@ void retro_run(void)
          case DITHER_OFF:
             break;
       }
+
+      GPU_set_visible_scanlines(MDFN_GetSettingI(content_is_pal ? "psx.slstartp" : "psx.slstart"),
+                                MDFN_GetSettingI(content_is_pal ? "psx.slendp" : "psx.slend"));
 
       PGXP_SetModes(psx_pgxp_mode | psx_pgxp_vertex_caching | psx_pgxp_texture_correction);
    }
@@ -4287,7 +4286,7 @@ void retro_run(void)
       if (frame_count % INTERNAL_FPS_SAMPLE_PERIOD == 0)
       {
          char msg_buffer[64];
-         float fps = is_pal ? FPS_PAL : FPS_NTSC;
+         float fps = content_is_pal ? FPS_PAL_NONINTERLACED : FPS_NTSC_NONINTERLACED;
          float internal_fps = (internal_frame_count * fps) / INTERNAL_FPS_SAMPLE_PERIOD;
 
          snprintf(msg_buffer, sizeof(msg_buffer), _("Internal FPS: %.2f"), internal_fps);
@@ -4461,29 +4460,29 @@ void retro_run(void)
          switch (width)
          {
             case 280:
-               pix_offset += 12 + (image_offset + floor(0.5 * image_crop));
+               pix_offset += 12 - image_offset + floor(0.5 * image_crop);
                width = 256 - image_crop;
                break;
 
             case 350:
-               pix_offset += 15 + (image_offset + floor(0.5 * image_crop));
+               pix_offset += 15 - image_offset + floor(0.5 * image_crop);
                width = 320 - image_crop;
                break;
 
             /* 368px mode. Some games are overcropped at 364 width or undercropped at 368 width, so crop to 366.
                Adjust in future if there are issues. */
             case 400:
-               pix_offset += 17 + (image_offset + floor(0.5 * image_crop));
+               pix_offset += 17 - image_offset + floor(0.5 * image_crop);
                width = 366 - image_crop;
                break;
 
             case 560:
-               pix_offset += 24 + (image_offset + floor(0.5 * image_crop));
+               pix_offset += 24 - image_offset + floor(0.5 * image_crop);
                width = 512 - image_crop;
                break;
 
             case 700:
-               pix_offset += 30 + (image_offset + floor(0.5 * image_crop));
+               pix_offset += 30 - image_offset + floor(0.5 * image_crop);
                width = 640 - image_crop;
                break;
 

@@ -55,10 +55,16 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       BEETLE_OPT(renderer),
       "Renderer (Restart)",
-      "Choose video renderer. The software renderer is the most accurate but has steep performance requirements when running at increased internal GPU resolutions. The hardware renderers, while less accurate, improve performance over the software renderer at increased internal resolutions and enable various graphical enhancements. 'Hardware' automatically selects the Vulkan or OpenGL renderer depending upon the current libretro frontend video driver. If the provided video driver is not Vulkan or OpenGL 3.3-compatible then the core will fall back to the software renderer.",
+      "Choose video renderer. The software renderer is the most accurate but has steep performance requirements when running at increased internal GPU resolutions. The hardware renderers, while less accurate, improve performance over the software renderer at increased internal resolutions and enable various graphical enhancements. 'Hardware (Auto)' automatically selects the Vulkan or OpenGL renderer depending upon the current libretro frontend video driver. If the provided video driver is not Vulkan or OpenGL 3.3-compatible then the core will fall back to the software renderer.",
       {
-         { "hardware", "Hardware" },
-         { "software", "Software" },
+         { "hardware",    "Hardware (Auto)" },
+#if defined(HAVE_OPENGL) || defined(HAVE_OPENGLES)
+         { "hardware_gl", "Hardware (OpenGL)" },
+#endif
+#if defined(HAVE_VULKAN)
+         { "hardware_vk", "Hardware (Vulkan)" },
+#endif
+         { "software",    "Software" },
          { NULL, NULL },
       },
       "hardware"
@@ -481,14 +487,6 @@ struct retro_core_option_definition option_defs_us[] = {
       "When 'Crop Horizontal Overscan' is enabled, allows the resultant cropped image to be offset horizontally to the right (positive) or left (negative) by the specified number of pixels. May be used to correct alignment issues. Only supported by the software renderer.",
       {
          { "disabled", NULL },
-         { "-20px",    NULL },
-         { "-19px",    NULL },
-         { "-18px",    NULL },
-         { "-17px",    NULL },
-         { "-16px",    NULL },
-         { "-15px",    NULL },
-         { "-14px",    NULL },
-         { "-13px",    NULL },
          { "-12px",    NULL },
          { "-11px",    NULL },
          { "-10px",    NULL },
@@ -513,14 +511,6 @@ struct retro_core_option_definition option_defs_us[] = {
          { "+10px",    NULL },
          { "+11px",    NULL },
          { "+12px",    NULL },
-         { "+13px",    NULL },
-         { "+14px",    NULL },
-         { "+15px",    NULL },
-         { "+16px",    NULL },
-         { "+17px",    NULL },
-         { "+18px",    NULL },
-         { "+19px",    NULL },
-         { "+20px",    NULL },
          { NULL, NULL },
       },
       "disabled"
@@ -620,7 +610,7 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       BEETLE_OPT(initial_scanline),
       "Initial Scanline - NTSC",
-      "Select the first displayed scanline when running NTSC content. Setting a value greater than zero will reduce the height of output images by cropping pixels from the topmost edge. May be used to counteract letterboxing. Requires restart for software renderer.",
+      "Select the first displayed scanline when running NTSC content. Setting a value greater than zero will reduce the height of output images by cropping pixels from the topmost edge. May be used to counteract letterboxing.",
       {
          { "0",  NULL },
          { "1",  NULL },
@@ -670,7 +660,7 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       BEETLE_OPT(last_scanline),
       "Last Scanline - NTSC",
-      "Select the last displayed scanline when running NTSC content. Setting a value less than 239 will reduce the height of output images by cropping pixels from the bottommost edge. May be used to counteract letterboxing. Requires restart for software renderer.",
+      "Select the last displayed scanline when running NTSC content. Setting a value less than 239 will reduce the height of output images by cropping pixels from the bottommost edge. May be used to counteract letterboxing.",
       {
          { "210", NULL },
          { "211", NULL },
@@ -709,7 +699,7 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       BEETLE_OPT(initial_scanline_pal),
       "Initial Scanline - PAL",
-      "Select the first displayed scanline when running PAL content. Setting a value greater than zero will reduce the height of output images by cropping pixels from the topmost edge. May be used to counteract letterboxing. Requires restart for software renderer.",
+      "Select the first displayed scanline when running PAL content. Setting a value greater than zero will reduce the height of output images by cropping pixels from the topmost edge. May be used to counteract letterboxing.",
       {
          { "0",  NULL },
          { "1",  NULL },
@@ -759,7 +749,7 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       BEETLE_OPT(last_scanline_pal),
       "Last Scanline - PAL",
-      "Select the last displayed scanline when running PAL content. Setting a value less than 287 will reduce the height of output images by cropping pixels from the bottommost edge. May be used to counteract letterboxing. Requires restart for software renderer.",
+      "Select the last displayed scanline when running PAL content. Setting a value less than 287 will reduce the height of output images by cropping pixels from the bottommost edge. May be used to counteract letterboxing.",
       {
          { "230", NULL },
          { "231", NULL },

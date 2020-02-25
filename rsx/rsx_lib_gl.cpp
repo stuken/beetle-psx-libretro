@@ -2265,10 +2265,10 @@ static struct retro_system_av_info get_av_info(VideoClock std)
    switch (std)
    {
       case VideoClock_Ntsc:
-         info.timing.fps = FPS_NTSC;
+         info.timing.fps = FPS_NTSC_NONINTERLACED;
          break;
       case VideoClock_Pal:
-         info.timing.fps = FPS_PAL;
+         info.timing.fps = FPS_PAL_NONINTERLACED;
          break;
    }
 
@@ -2420,13 +2420,7 @@ void rsx_gl_finalize_frame(const void *fb, unsigned width,
    glClearColor(0.0, 0.0, 0.0, 0.0);
    glClear(GL_COLOR_BUFFER_BIT);
 
-   /* If the display is off, just clear the screen */
-   if (renderer->config.display_off && !renderer->display_vram)
-   {
-      glClearColor(0.0, 0.0, 0.0, 0.0);
-      glClear(GL_COLOR_BUFFER_BIT);
-   }
-   else
+   if (!renderer->config.display_off || renderer->display_vram)
    {
       /* Bind 'fb_out' to texture unit 1 */
       glActiveTexture(GL_TEXTURE1);
